@@ -26,18 +26,18 @@ python tf_convert_data.py \
 """
 import tensorflow as tf
 
-from datasets import pascalvoc_to_tfrecords
+from datasets import pascalvoc_to_tfrecords, widerface_to_tfrecords
 
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string(
-    'dataset_name', 'pascalvoc',
+    'dataset_name', None,
     'The name of the dataset to convert.')
 tf.app.flags.DEFINE_string(
     'dataset_dir', None,
     'Directory where the original dataset is stored.')
 tf.app.flags.DEFINE_string(
-    'output_name', 'pascalvoc',
+    'output_name', None,
     'Basename used for TFRecords output files.')
 tf.app.flags.DEFINE_string(
     'output_dir', './',
@@ -52,6 +52,8 @@ def main(_):
 
     if FLAGS.dataset_name == 'pascalvoc':
         pascalvoc_to_tfrecords.run(FLAGS.dataset_dir, FLAGS.output_dir, FLAGS.output_name)
+    elif FLAGS.dataset_name == 'widerface':
+        widerface_to_tfrecords.run(FLAGS.dataset_dir, FLAGS.output_dir, FLAGS.output_name)
     else:
         raise ValueError('Dataset [%s] was not recognized.' % FLAGS.dataset_name)
 
