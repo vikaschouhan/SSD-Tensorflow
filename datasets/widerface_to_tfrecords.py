@@ -32,6 +32,7 @@ import numpy as np
 import scipy.ndimage
 import tensorflow as tf
 from   datasets.dataset_utils import int64_feature, float_feature, bytes_feature
+from   datasets.widerface_common import WIDERFACE_LABELS
 
 # Original dataset organisation.
 DIRECTORY_ANNOTATIONS  = 'wider_face_split/'
@@ -133,6 +134,9 @@ def _convert_to_example(image_data, bboxes, shape):
 
     # shape
     height, width, channels = shape[0], shape[1], shape[2]
+    # labels
+    labels = []
+    labels_text = []
 
     for b in bboxes:
         assert len(b) >= 4
@@ -140,13 +144,26 @@ def _convert_to_example(image_data, bboxes, shape):
         x1, y1 = b[0], b[1]
         x2, y2 = (b[0] + b[2]), (b[1] + b[3])
         # Normalize
-        x1, x2 = float(x1/width), float(x2/width)
-        y1, y2 = float(y1/height), float(y1/height)
+        x1, x2 = float(x1)/width, float(x2)/width
+        y1, y2 = float(y1)/height, float(y1)/height
+
+        # Add labels
+        label_this = 'face'
+        labels.append(int(WIDERFACE_LABELS[label_this][0]))
+        labels_text.append(label_this.encode('ascii'))
 
         # pylint: disable=expression-not-assigned
         [l.append(point) for l, point in zip([ymin, xmin, ymax, xmax], [y1, x1, y2, x2])]
         # pylint: enable=expression-not-assigned
     # endfor
+
+    # Debug
+    #print 'ymin        = {}'.format(ymin)
+    #print 'xmin        = {}'.format(xmin)
+    #print 'ymax        = {}'.format(ymax)
+    #print 'xmax        = {}'.format(xmax)
+    #print 'labels      = {}'.format(labels)
+    #print 'labels_text = {}'.format(labels_text)
 
     image_format = b'JPEG'
     example = tf.train.Example(features=tf.train.Features(feature={
@@ -158,6 +175,8 @@ def _convert_to_example(image_data, bboxes, shape):
             'image/object/bbox/xmax': float_feature(xmax),
             'image/object/bbox/ymin': float_feature(ymin),
             'image/object/bbox/ymax': float_feature(ymax),
+            'image/object/label': int64_feature(labels),
+            'image/object/label_text': bytes_feature(labels_text),
             'image/format': bytes_feature(image_format),
             'image/encoded': bytes_feature(image_data)}))
     return example

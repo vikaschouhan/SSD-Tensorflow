@@ -146,6 +146,14 @@ def _convert_to_example(image_data, labels, labels_text, bboxes, shape,
         [l.append(point) for l, point in zip([ymin, xmin, ymax, xmax], b)]
         # pylint: enable=expression-not-assigned
 
+    # Debug
+    #print 'ymin        = {}'.format(ymin)
+    #print 'xmin        = {}'.format(xmin)
+    #print 'ymax        = {}'.format(ymax)
+    #print 'xmax        = {}'.format(xmax)
+    #print 'labels      = {}'.format(labels)
+    #print 'labels_text = {}'.format(labels_text)
+
     image_format = b'JPEG'
     example = tf.train.Example(features=tf.train.Features(feature={
             'image/height': int64_feature(shape[0]),
