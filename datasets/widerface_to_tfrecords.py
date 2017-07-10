@@ -141,9 +141,9 @@ def _convert_to_example(image_data, bboxes, shape):
     height, width, channels = shape[0], shape[1], shape[2]
     # labels
     
-
     labels = []
     labels_text = []
+    ignore_image = False
 
     for b in bboxes:
         assert len(b) >= 4
@@ -153,6 +153,10 @@ def _convert_to_example(image_data, bboxes, shape):
         # Normalize
         x1, x2 = float(x1)/width, float(x2)/width
         y1, y2 = float(y1)/height, float(y1)/height
+
+        if not (x1>=0.0 and x1<=1.0 and x2>=0.0 and x2<=1.0 and y1>=0.0 and y1<=1.0 and y2>=0.0 and y2<=1.0):
+            ignore_image = True
+        # endif
 
         # Add labels
         label_this = 'face'
@@ -166,7 +170,7 @@ def _convert_to_example(image_data, bboxes, shape):
     # endfor
 
     # Debug
-    if x1>=0.0 and x1<=1.0 and x2>=0.0 and x2<=1.0 and y1>=0.0 and y1<=1.0 and y2>=0.0 and y2<=1.0:
+    if ignore_image == False:
 
         image_format = b'JPEG'
         example = tf.train.Example(features=tf.train.Features(feature={
