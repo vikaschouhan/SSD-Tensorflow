@@ -230,15 +230,22 @@ def main(_):
                     common_queue_min=10 * FLAGS.batch_size,
                     shuffle=True)
             # Get for SSD network: image, labels, bboxes.
+            print("INITIAL:")
             [image, shape, glabels, gbboxes] = provider.get(['image', 'shape',
                                                              'object/label',
                                                              'object/bbox'])
+                                                       
+            print(gbboxes)
             # Pre-processing image, labels and bboxes.
             image, glabels, gbboxes = \
                 image_preprocessing_fn(image, glabels, gbboxes,
                                        out_shape=ssd_shape,
                                        data_format=DATA_FORMAT)
+                                       
+            
             # Encode groundtruth labels and bboxes.
+            print("Modified:")
+            print(gbboxes)
             gclasses, glocalisations, gscores = \
                 ssd_net.bboxes_encode(glabels, gbboxes, ssd_anchors)
             batch_shape = [1] + [len(ssd_anchors)] * 3
