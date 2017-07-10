@@ -27,7 +27,7 @@ import os
 import sys
 import random
 import bson
-
+import cv2
 import numpy as np
 import scipy.ndimage
 import tensorflow as tf
@@ -46,8 +46,8 @@ SAMPLES_PER_FILES = 200
 # Populate 
 def _populate_annotations_for_wider_database(bbox_file, dataset_info="Wider face dataset.", create_bson=False):
     def r_b(f_ptr):
-        line_this = f_ptr.next().strip('\n')
-        #print line_this
+        line_this = next(f_ptr).strip('\n')
+        
         return line_this
     # enddef
 
@@ -115,11 +115,16 @@ def _populate_annotations_for_wider_database(bbox_file, dataset_info="Wider face
 def _process_image(directory, img_dict):
     # Read the image file.
     filename = directory + DIRECTORY_TRAIN_IMAGES + img_dict['file']
-    image_data = tf.gfile.FastGFile(filename, 'r').read()
+    image_data = tf.gfile.FastGFile(filename, 'rb').read()
     bboxes     = img_dict['bbox']
 
     # Image shape.
+    
     height, width, depth = scipy.ndimage.imread(filename).shape
+    if height>1024:
+        print (height)
+    elif width>1024:
+        print (width)
     shape = [ height, width, depth ]
 
     return image_data, shape, bboxes
@@ -135,6 +140,8 @@ def _convert_to_example(image_data, bboxes, shape):
     # shape
     height, width, channels = shape[0], shape[1], shape[2]
     # labels
+    
+
     labels = []
     labels_text = []
 
@@ -153,20 +160,16 @@ def _convert_to_example(image_data, bboxes, shape):
         labels_text.append(label_this.encode('ascii'))
 
         # pylint: disable=expression-not-assigned
+
         [l.append(point) for l, point in zip([ymin, xmin, ymax, xmax], [y1, x1, y2, x2])]
         # pylint: enable=expression-not-assigned
     # endfor
 
     # Debug
-    #print 'ymin        = {}'.format(ymin)
-    #print 'xmin        = {}'.format(xmin)
-    #print 'ymax        = {}'.format(ymax)
-    #print 'xmax        = {}'.format(xmax)
-    #print 'labels      = {}'.format(labels)
-    #print 'labels_text = {}'.format(labels_text)
+    if x1>=0.0 and x1<=1.0 and x2>=0.0 and x2<=1.0 and y1>=0.0 and y1<=1.0 and y2>=0.0 and y2<=1.0:
 
-    image_format = b'JPEG'
-    example = tf.train.Example(features=tf.train.Features(feature={
+        image_format = b'JPEG'
+        example = tf.train.Example(features=tf.train.Features(feature={
             'image/height': int64_feature(height),
             'image/width': int64_feature(width),
             'image/channels': int64_feature(channels),
@@ -179,14 +182,37 @@ def _convert_to_example(image_data, bboxes, shape):
             'image/object/label_text': bytes_feature(labels_text),
             'image/format': bytes_feature(image_format),
             'image/encoded': bytes_feature(image_data)}))
-    return example
+        return example
+    else:
+        print (x1,y1,x2,y2)
+        return None
+
+    
+  
+    
+    
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+    
 # enddef
 
 
 def _add_to_tfrecord(dataset_dir, img_record, tfrecord_writer):
     image_data, shape, bboxes = _process_image(dataset_dir, img_record)
     example = _convert_to_example(image_data, bboxes, shape)
-    tfrecord_writer.write(example.SerializeToString())
+    if example is not None:
+        tfrecord_writer.write(example.SerializeToString())
+    
 # enddef
 
 
@@ -206,11 +232,11 @@ def run(dataset_dir, output_dir, name='wider_train', shuffling=False):
 
     # Check files
     if not tf.gfile.Exists(train_annot_path):
-        print '{} does not exist. Exiting.'.format(train_annot_path)
+        print(('{} does not exist. Exiting.').format(train_annot_path))
         return
     # endif
     if not tf.gfile.Exists(val_annot_path):
-        print '{} does not exist. Exiting.'.format(val_annot_path)
+        print(('{} does not exist. Exiting.').format(val_annot_path))
         return
     # endif
 

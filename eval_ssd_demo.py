@@ -195,11 +195,11 @@ def main():
     args    = parser.parse_args()
 
     if not args.__dict__["image"]:
-        print "--image is required !!"
+        print("--image is required !!")
         sys.exit(-1)
     # endif
     if not args.__dict__["ckpt"]:
-        print "--ckpt is required !!"
+        print("--ckpt is required !!")
         sys.exit(-1)
     # endif
 

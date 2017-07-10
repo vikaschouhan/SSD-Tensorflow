@@ -6,7 +6,7 @@ from datasets import widerface_common
 
 slim = tf.contrib.slim
 
-FILE_PATTERN = 'widerface_%s_*.tfrecord'
+FILE_PATTERN = 'wider_%s_*.tfrecord'
 ITEMS_TO_DESCRIPTIONS = {
     'image': 'A color image of varying height and width.',
     'shape': 'Shape of the image',
