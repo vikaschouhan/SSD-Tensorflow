@@ -207,7 +207,7 @@ def _get_output_filename(output_dir, name, idx):
     return '%s/%s_%03d.tfrecord' % (output_dir, name, idx)
 
 
-def run(dataset_dir, output_dir, name='wider_train', shuffling=False):
+def run(dataset_dir, output_dir, shuffling=False):
     if not tf.gfile.Exists(dataset_dir):
         tf.gfile.MakeDirs(dataset_dir)
     # endif
@@ -240,22 +240,37 @@ def run(dataset_dir, output_dir, name='wider_train', shuffling=False):
         random.shuffle(val_rec_list)
     # endif
 
-    # Process dataset files.
-    i = 0
-    fidx = 0
-    while i < len(train_rec_list):
-        # Open new TFRecord file.
-        tf_filename = _get_output_filename(output_dir, name, fidx)
-        with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:
-            j = 0
-            while i < len(train_rec_list) and j < SAMPLES_PER_FILES:
-                sys.stdout.write('\r>> Converting image %d/%d' % (i+1, len(train_rec_list)))
-                sys.stdout.flush()
+    def _process_dataset_files(output_dir, rec_list, name):
+        # Delete and create the directory once again
+        if os.path.isdir(output_dir):
+            oshutil.rmtree(output_dir)
+        # endif
+        os.mkdir(output_dir)
 
-                _add_to_tfrecord(dataset_dir, train_rec_list[i], tfrecord_writer)
-                i += 1
-                j += 1
-            fidx += 1
+        # Process dataset files.
+        i = 0
+        fidx = 0
+        while i < len(rec_list):
+            # Open new TFRecord file.
+            tf_filename = _get_output_filename(output_dir, name, fidx)
+            with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:
+                j = 0
+                while i < len(train_rec_list) and j < SAMPLES_PER_FILES:
+                    sys.stdout.write('\r>> Converting image %d/%d' % (i+1, len(rec_list)))
+                    sys.stdout.flush()
+
+                    _add_to_tfrecord(dataset_dir, train_rec_list[i], tfrecord_writer)
+                    i += 1
+                    j += 1
+                fidx += 1
+            # endwith
+        # endwhile
+    # enddef
+
+    print "Converting wider_train .."
+    _process_dataset_files(output_dir + '/WIDER_train', train_rec_list, "wider_train")
+    print "Converting wider_test .."
+    _process_dataset_files(output_dir + '/WIDER_test', val_rec_list, "wider_test")
 
     # Finally, write the labels file:
     # labels_to_class_names = dict(zip(range(len(_CLASS_NAMES)), _CLASS_NAMES))
