@@ -296,6 +296,7 @@ def main(_):
         # config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
 
         # Number of batches...
+        print 'dataset.num_samples = {}'.format(dataset.num_samples)
         if FLAGS.max_num_batches:
             num_batches = FLAGS.max_num_batches
         else:

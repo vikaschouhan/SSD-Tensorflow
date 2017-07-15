@@ -28,6 +28,7 @@ import sys
 import random
 import bson
 import cv2
+import shutil
 import numpy as np
 import scipy.ndimage
 import tensorflow as tf
@@ -114,7 +115,7 @@ def _populate_annotations_for_wider_database(bbox_file, dataset_info="Wider face
 
 def _process_image(directory, img_dict):
     # Read the image file.
-    filename = directory + DIRECTORY_TRAIN_IMAGES + img_dict['file']
+    filename = directory + '/images/' + img_dict['file']
     image_data = tf.gfile.FastGFile(filename, 'rb').read()
     bboxes     = img_dict['bbox']
 
@@ -240,26 +241,31 @@ def run(dataset_dir, output_dir, shuffling=False):
         random.shuffle(val_rec_list)
     # endif
 
-    def _process_dataset_files(output_dir, rec_list, name):
+    def _process_dataset_files(d_dir, o_dir, rec_list, name, n_rec_convert=None):
         # Delete and create the directory once again
-        if os.path.isdir(output_dir):
-            oshutil.rmtree(output_dir)
+        if os.path.isdir(o_dir):
+            shutil.rmtree(o_dir)
         # endif
-        os.mkdir(output_dir)
+        os.mkdir(o_dir)
+        print o_dir
+
+        if n_rec_convert == None:
+            n_rec_convert = len(rec_list)
+        # endif
 
         # Process dataset files.
         i = 0
         fidx = 0
-        while i < len(rec_list):
+        while i < n_rec_convert:
             # Open new TFRecord file.
-            tf_filename = _get_output_filename(output_dir, name, fidx)
+            tf_filename = _get_output_filename(o_dir, name, fidx)
             with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:
                 j = 0
-                while i < len(train_rec_list) and j < SAMPLES_PER_FILES:
-                    sys.stdout.write('\r>> Converting image %d/%d' % (i+1, len(rec_list)))
+                while i < n_rec_convert and j < SAMPLES_PER_FILES:
+                    sys.stdout.write('\r>> Converting image %d/%d' % (i+1, n_rec_convert))
                     sys.stdout.flush()
 
-                    _add_to_tfrecord(dataset_dir, train_rec_list[i], tfrecord_writer)
+                    _add_to_tfrecord(d_dir, rec_list[i], tfrecord_writer)
                     i += 1
                     j += 1
                 fidx += 1
@@ -268,9 +274,9 @@ def run(dataset_dir, output_dir, shuffling=False):
     # enddef
 
     print "Converting wider_train .."
-    _process_dataset_files(output_dir + '/WIDER_train', train_rec_list, "wider_train")
+    _process_dataset_files(dataset_dir + '/WIDER_train', output_dir + '/WIDER_train', train_rec_list, "wider_train")
     print "Converting wider_test .."
-    _process_dataset_files(output_dir + '/WIDER_test', val_rec_list, "wider_test")
+    _process_dataset_files(dataset_dir + '/WIDER_val', output_dir + '/WIDER_val', val_rec_list, "wider_val", 20)
 
     # Finally, write the labels file:
     # labels_to_class_names = dict(zip(range(len(_CLASS_NAMES)), _CLASS_NAMES))
