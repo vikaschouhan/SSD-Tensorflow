@@ -18,7 +18,7 @@ SPLITS_TO_SIZES = {
     'test': 4952,
     'val' : 20,
 }
-NUM_CLASSES = 2
+NUM_CLASSES = 1
 
 
 def get_split(split_name, dataset_dir, file_pattern=None, reader=None):

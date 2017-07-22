@@ -9,7 +9,6 @@ from datasets import dataset_utils
 slim = tf.contrib.slim
 
 WIDERFACE_LABELS = {
-    'none': (0, 'Background'),
     'face': (1, 'Person'),
 }
 
